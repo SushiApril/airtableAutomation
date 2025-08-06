@@ -36,6 +36,11 @@ def decompress_json(api, base_id, applicant_record):
     sync_work_experience(work_table, applicant_id, record_id, data["experience"])
 
 def upsert_personal_details(personal_table, applicant_id, record_id, personal_data):
+    """
+    Creates or updates a record in the 'Personal Details' table for the given applicant.
+    If a matching record exists based on Applicant ID, it is updated with the new values.
+    Otherwise, a new record is created and linked back to the applicant.
+    """
     match_formula = match({"Applicant ID": applicant_id})
     existing = personal_table.first(formula=match_formula)
 
@@ -55,6 +60,12 @@ def upsert_personal_details(personal_table, applicant_id, record_id, personal_da
         print("Created Personal Details")
 
 def upsert_salary_preferences(salary_table, applicant_id, record_id, salary_data):
+    """
+    Creates or updates a record in the 'Salary Preferences' table for the given applicant.
+    If a matching record exists based on Applicant ID, it is updated with the new salary fields.
+    Otherwise, a new record is created and linked to the applicant.
+    Logs parsed salary data for debugging purposes.
+    """
     match_formula = match({"Applicant ID": applicant_id})
     existing = salary_table.first(formula=match_formula)
 
@@ -76,6 +87,13 @@ def upsert_salary_preferences(salary_table, applicant_id, record_id, salary_data
         print("Created Salary Preferences")
 
 def sync_work_experience(work_table, applicant_id, record_id, experience_list):
+    """
+    Replaces all existing 'Work Experience' records for the given applicant.
+    Deletes all current entries linked by Applicant ID, then creates new entries
+    based on the provided experience list from the compressed JSON.
+    Ensures correct linkage to the applicant record via record ID.
+    """
+
     existing_records = work_table.all(formula=match({"Applicant ID": applicant_id}))
 
     for rec in existing_records:
@@ -95,6 +113,14 @@ def sync_work_experience(work_table, applicant_id, record_id, experience_list):
 
 
 def run_decompression(applicant_id="A001"):
+    """
+    Runs the full decompression workflow for a given applicant ID.
+    - Connects to Airtable
+    - Retrieves the applicant record from the 'Applicants' table
+    - Calls the decompression function to restore all child table data from JSON
+    Skips execution if the applicant is not found.
+    """
+
     api, base_id = connect_to_airtable()
     applicants_table = api.table(base_id, "Applicants")
     record = applicants_table.first(formula=match({"Applicant ID": applicant_id}))
@@ -106,4 +132,4 @@ def run_decompression(applicant_id="A001"):
     decompress_json(api, base_id, record)
 
 if __name__ == "__main__":
-    run_decompression(applicant_id="A001")
+    run_decompression(applicant_id="2")
