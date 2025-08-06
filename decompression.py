@@ -3,6 +3,15 @@ import json
 from compression import connect_to_airtable
 
 def decompress_json(api, base_id, applicant_record):
+    """
+    Reconstructs and syncs child records from a compressed JSON object stored
+    in the given applicant record. This includes:
+    - Updating or creating Personal Details and Salary Preferences (1:1)
+    - Replacing all associated Work Experience records (1:N)
+    
+    Skips if JSON is missing or invalid.
+    """
+
     applicant_id = applicant_record["fields"].get("Applicant ID")
     record_id = applicant_record["id"]
 

@@ -22,6 +22,11 @@ Follow-Ups:
 """
 
 def call_llm(applicant_json):
+    """
+    Sends the applicant's JSON data to the OpenAI API using a structured prompt.
+    Receives a structured response containing a summary, score, issues, and follow-up questions.
+    Returns the parsed response as a dictionary.
+    """
     prompt = PROMPT_TEMPLATE + "\n\n" + str(applicant_json)
 
     response = client.chat.completions.create(
@@ -39,6 +44,12 @@ def call_llm(applicant_json):
     return parse_llm_response(content)
 
 def parse_llm_response(text):
+    """
+    Parses the raw response text from the LLM into structured fields:
+    - Extracts the summary, score, and issues based on line prefixes
+    - Collects bullet-pointed follow-up questions
+    Returns a dictionary with keys: 'summary', 'score', 'issues', and 'followups'.
+    """
     def extract_line(prefix):
         for line in text.splitlines():
             if line.startswith(prefix):

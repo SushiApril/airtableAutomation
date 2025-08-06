@@ -23,6 +23,11 @@ def connect_to_airtable():
     api = Api(api_key)
     return api, base_id
 
+""" Retrieves a single applicant record from the 'Applicants' table
+    by matching the provided Applicant ID. Returns the full record
+    if found, otherwise returns None.
+    """
+
 def get_applicant_by_id(api, base_id, applicant_id):
     applicants = api.table(base_id, "Applicants").all()
     for record in applicants:
@@ -34,6 +39,15 @@ def get_applicant_by_id(api, base_id, applicant_id):
 
 
 def get_child_records(api, base_id, applicant_id):
+    """
+    Retrieves child records linked to a given applicant from:
+    - Personal Details (1:1)
+    - Salary Preferences (1:1)
+    - Work Experience (1:N)
+
+    Returns a tuple: (personal, salary, work_records)
+    """
+
     personal = api.table(base_id, "Personal Details").first(formula=match({"Applicant ID": applicant_id}))
     salary = api.table(base_id, "Salary Preferences").first(formula=match({"Applicant ID": applicant_id}))
     work_records = api.table(base_id, "Work Experience").all(formula=match({"Applicant ID": applicant_id}))
@@ -46,6 +60,14 @@ def get_child_records(api, base_id, applicant_id):
 
 
 def build_compressed_json(personal, salary, work_records):
+    """
+    Constructs a structured JSON object from an applicant's child records:
+    - Personal details
+    - Salary preferences
+    - Work experience list
+
+    Returns a dictionary that matches the compressed JSON format required by the application.
+    """
     return {
         "personal": {
             "name": personal["fields"].get("Full Name", ""),
@@ -72,6 +94,10 @@ def build_compressed_json(personal, salary, work_records):
 
 
 def save_compressed_json(api, base_id, applicant_record_id, compressed_data):
+    """
+    Saves the provided compressed JSON object to the 'Compressed JSON' field
+    of the specified applicant record in the 'Applicants' table.
+    """
     applicants_table = api.table(base_id, "Applicants")
     json_string = json.dumps(compressed_data, indent=2)
 
@@ -83,6 +109,13 @@ def save_compressed_json(api, base_id, applicant_record_id, compressed_data):
 
 
 def run_compression(applicant_id="A001"):
+    """
+    Executes the full compression flow for a given applicant:
+    - Connects to Airtable
+    - Retrieves applicant and related child records
+    - Builds a compressed JSON structure
+    - Prints and saves the JSON back to the applicant's record
+    """
     api, base_id = connect_to_airtable()
 
     applicant_record = get_applicant_by_id(api, base_id, applicant_id)
