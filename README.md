@@ -98,7 +98,7 @@ Each functional step can be tested independently:
 run_compression("A001")
 run_decompression("A001")
 run_shortlisting("A001")
-run_llm_enrichment("A001")
+run_llm_enrichment("A001")```
 
 Replace "A001" with any valid Applicant ID in your Airtable base.
 
